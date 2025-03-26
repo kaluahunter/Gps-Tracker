@@ -1,33 +1,33 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const path = require('path');
-
 const app = express();
-const port = process.env.PORT || 3000;  // Use Render's assigned port
+const PORT = process.env.PORT || 3000;
 
+app.use(express.static('public'));
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, 'public'))); // Serve frontend
 
 let locations = [];
 
-// ✅ POST route for ESP32
-app.post('/location', (req, res) => {
+app.post('/gps', (req, res) => {
     const { latitude, longitude } = req.body;
-
     if (latitude && longitude) {
         locations.push({ latitude, longitude });
-        console.log(`Received: Latitude ${latitude}, Longitude ${longitude}`);
-        res.status(200).send({ message: "Location received" });
+        console.log(`Received GPS Data: Lat=${latitude}, Lon=${longitude}`);
+        res.sendStatus(200);
     } else {
-        res.status(400).send({ error: "Invalid data" });
+        res.sendStatus(400);
     }
 });
 
-// ✅ GET route for frontend to fetch locations
 app.get('/locations', (req, res) => {
     res.json(locations);
 });
 
-app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+app.post('/reset', (req, res) => {
+    locations = [];
+    res.sendStatus(200);
+});
+
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });

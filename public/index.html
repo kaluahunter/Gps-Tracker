@@ -3,76 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GPS Tracker</title>
+    <title>GPS Location Tracker</title>
     <style>
-        #map {
-            height: 400px;
-            width: 100%;
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
         }
-        #locationList {
-            margin-top: 20px;
+        h1 {
+            color: #333;
+        }
+        #location-list {
+            list-style: none;
+            padding: 0;
         }
         .location-item {
-            padding: 5px;
-            border-bottom: 1px solid #ddd;
-        }
-        #reset {
-            margin-top: 10px;
+            background: #f4f4f4;
+            margin: 5px 0;
             padding: 10px;
-            background-color: red;
+            border-radius: 5px;
+        }
+        #reset-button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background: red;
             color: white;
             border: none;
             cursor: pointer;
+            border-radius: 5px;
         }
     </style>
 </head>
 <body>
-    <h1>GPS Tracker</h1>
-    <div id="map"></div>
-    <button id="reset">Reset</button>
-    <div id="locationList"></div>
+    <h1>GPS Location Tracker</h1>
+    <ul id="location-list"></ul>
+    <button id="reset-button">Reset Locations</button>
 
     <script>
-        let map;
-        let markers = [];
-        let locationList = document.getElementById('locationList');
+        async function fetchLocations() {
+            const response = await fetch('/locations');
+            const locations = await response.json();
+            const list = document.getElementById('location-list');
+            list.innerHTML = '';
 
-        function initMap() {
-            map = L.map('map').setView([20.5937, 78.9629], 5); // Default to India
-
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors'
-            }).addTo(map);
+            locations.forEach((loc, index) => {
+                const item = document.createElement('li');
+                item.className = 'location-item';
+                item.textContent = `#${index + 1} - Latitude: ${loc.latitude}, Longitude: ${loc.longitude}`;
+                list.appendChild(item);
+            });
         }
 
-        function fetchLocations() {
-            fetch('/locations')
-                .then(response => response.json())
-                .then(data => {
-                    data.forEach(location => {
-                        let marker = L.marker([location.latitude, location.longitude]).addTo(map);
-                        markers.push(marker);
-
-                        let listItem = document.createElement('div');
-                        listItem.className = 'location-item';
-                        listItem.innerText = `Lat: ${location.latitude}, Lng: ${location.longitude}`;
-                        locationList.appendChild(listItem);
-                    });
-                });
-        }
-
-        document.getElementById('reset').addEventListener('click', () => {
-            markers.forEach(marker => map.removeLayer(marker));
-            markers = [];
-            locationList.innerHTML = '';
+        document.getElementById('reset-button').addEventListener('click', async () => {
+            await fetch('/reset', { method: 'POST' });
+            fetchLocations();
         });
 
-        window.onload = () => {
-            initMap();
-            fetchLocations();
-        };
+        setInterval(fetchLocations, 5000);
+        fetchLocations();
     </script>
-
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 </body>
 </html>
