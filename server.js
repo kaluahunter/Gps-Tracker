@@ -1,41 +1,25 @@
-const express = require("express");
-const cors = require("cors");
+const express = require('express');
+const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
 app.use(cors());
+app.use(express.json()); // Allow JSON data
 
-let locations = []; // Stores received GPS data
-
-// Route to receive GPS data from ESP32
-app.post("/send-location", (req, res) => {
-    const { latitude, longitude, timestamp } = req.body;
-
-    if (!latitude || !longitude) {
-        return res.status(400).json({ error: "Latitude and longitude are required" });
-    }
-
-    const locationData = { latitude, longitude, timestamp: timestamp || Date.now() };
-    locations.push(locationData);
-
-    console.log("Received Location:", locationData);
-    res.json({ message: "Location received", location: locationData });
+// Serve the homepage
+app.get('/', (req, res) => {
+    res.send('GPS Tracker Server is Running!');
 });
 
-// Route to get all locations (for frontend)
-app.get("/locations", (req, res) => {
-    res.json(locations);
+// Corrected POST Route for GPS Data
+app.post('/gps', (req, res) => {
+    const { latitude, longitude } = req.body;
+    console.log(`Received GPS Data: Latitude=${latitude}, Longitude=${longitude}`);
+    
+    res.status(200).send('GPS Data Received');
 });
 
-// Route to reset locations
-app.post("/reset", (req, res) => {
-    locations = [];
-    res.json({ message: "All locations reset" });
-});
-
-// Start the server
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
