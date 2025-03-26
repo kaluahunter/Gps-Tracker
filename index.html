@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPS Tracker</title>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initMap" async defer></script>
+    <script src="script.js" defer></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        #map { height: 400px; width: 100%; margin: 20px 0; }
+        #location-list { max-width: 600px; margin: auto; text-align: left; }
+        button { padding: 10px 15px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <h1>Live GPS Tracker</h1>
+    <div id="map"></div>
+    <button onclick="resetMap()">Reset</button>
+    <h2>Location History</h2>
+    <ul id="location-list"></ul>
+
+</body>
+</html>
