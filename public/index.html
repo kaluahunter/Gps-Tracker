@@ -3,65 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GPS Location Tracker</title>
+    <title>GPS Tracker</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 20px;
-        }
-        h1 {
-            color: #333;
-        }
-        #location-list {
-            list-style: none;
-            padding: 0;
-        }
-        .location-item {
-            background: #f4f4f4;
-            margin: 5px 0;
-            padding: 10px;
-            border-radius: 5px;
-        }
-        #reset-button {
-            margin-top: 10px;
-            padding: 10px 20px;
-            font-size: 16px;
-            background: red;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-        }
+        body { font-family: Arial, sans-serif; text-align: center; }
+        h2 { margin-top: 20px; }
+        table { width: 80%; margin: 20px auto; border-collapse: collapse; }
+        th, td { padding: 10px; border: 1px solid black; }
+        th { background: #ddd; }
+        #clearBtn { margin-top: 10px; padding: 10px; background: red; color: white; cursor: pointer; }
     </style>
+    <script>
+        setTimeout(() => { location.reload(); }, 3000); // Reload page every 3 seconds
+    </script>
 </head>
 <body>
-    <h1>GPS Location Tracker</h1>
-    <ul id="location-list"></ul>
-    <button id="reset-button">Reset Locations</button>
+    <h2>GPS Data List</h2>
+    <button id="clearBtn">Clear Data</button>
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Latitude</th>
+                <th>Longitude</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+        <tbody id="gpsTable"></tbody>
+    </table>
 
     <script>
-        async function fetchLocations() {
-            const response = await fetch('/locations');
-            const locations = await response.json();
-            const list = document.getElementById('location-list');
-            list.innerHTML = '';
+        async function fetchGPSData() {
+            const response = await fetch("/gps-data");
+            const data = await response.json();
+            const table = document.getElementById("gpsTable");
+            table.innerHTML = "";  // Clear old data
 
-            locations.forEach((loc, index) => {
-                const item = document.createElement('li');
-                item.className = 'location-item';
-                item.textContent = `#${index + 1} - Latitude: ${loc.latitude}, Longitude: ${loc.longitude}`;
-                list.appendChild(item);
+            data.forEach((entry, index) => {
+                const row = `<tr>
+                    <td>${index + 1}</td>
+                    <td>${entry.latitude}</td>
+                    <td>${entry.longitude}</td>
+                    <td>${entry.timestamp}</td>
+                </tr>`;
+                table.innerHTML += row;
             });
         }
 
-        document.getElementById('reset-button').addEventListener('click', async () => {
-            await fetch('/reset', { method: 'POST' });
-            fetchLocations();
+        document.getElementById("clearBtn").addEventListener("click", () => {
+            fetch("/clear-data", { method: "DELETE" })
+                .then(() => fetchGPSData()); // Refresh after clearing
         });
 
-        setInterval(fetchLocations, 5000);
-        fetchLocations();
+        fetchGPSData();  // Load data on page load
     </script>
 </body>
 </html>
