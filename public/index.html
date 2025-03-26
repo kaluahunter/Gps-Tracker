@@ -5,56 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GPS Tracker</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        h2 { margin-top: 20px; }
-        table { width: 80%; margin: 20px auto; border-collapse: collapse; }
-        th, td { padding: 10px; border: 1px solid black; }
-        th { background: #ddd; }
-        #clearBtn { margin-top: 10px; padding: 10px; background: red; color: white; cursor: pointer; }
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            background: #f4f4f4;
+            margin: 5px;
+            padding: 10px;
+            border-radius: 5px;
+        }
     </style>
     <script>
-        setTimeout(() => { location.reload(); }, 2000); // Reload page every 2 seconds
+        function fetchGPSData() {
+            fetch("/locations")
+                .then(response => response.json())
+                .then(data => {
+                    const list = document.getElementById("gps-list");
+                    list.innerHTML = "";
+
+                    data.forEach((entry, index) => {
+                        const listItem = document.createElement("li");
+                        listItem.textContent = `#${index + 1} - Lat: ${entry.latitude}, Lng: ${entry.longitude}, Time: ${entry.timestamp}`;
+                        list.appendChild(listItem);
+                    });
+                })
+                .catch(error => console.error("Error fetching data:", error));
+        }
+
+        setInterval(fetchGPSData, 2000); // Auto-refresh every 3 seconds
     </script>
 </head>
 <body>
-    <h2>GPS Data List</h2>
-    <button id="clearBtn">Clear Data</button>
-    <table>
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Latitude</th>
-                <th>Longitude</th>
-                <th>Timestamp</th>
-            </tr>
-        </thead>
-        <tbody id="gpsTable"></tbody>
-    </table>
-
-    <script>
-        async function fetchGPSData() {
-            const response = await fetch("/gps-data");
-            const data = await response.json();
-            const table = document.getElementById("gpsTable");
-            table.innerHTML = "";  // Clear old data
-
-            data.forEach((entry, index) => {
-                const row = `<tr>
-                    <td>${index + 1}</td>
-                    <td>${entry.latitude}</td>
-                    <td>${entry.longitude}</td>
-                    <td>${entry.timestamp}</td>
-                </tr>`;
-                table.innerHTML += row;
-            });
-        }
-
-        document.getElementById("clearBtn").addEventListener("click", () => {
-            fetch("/clear-data", { method: "DELETE" })
-                .then(() => fetchGPSData()); // Refresh after clearing
-        });
-
-        fetchGPSData();  // Load data on page load
-    </script>
+    <h1>Live GPS Data</h1>
+    <ul id="gps-list"></ul>
 </body>
 </html>
