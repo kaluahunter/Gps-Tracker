@@ -4,22 +4,59 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GPS Tracker</title>
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initMap" async defer></script>
-    <script src="script.js" defer></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        #map { height: 400px; width: 100%; margin: 20px 0; }
-        #location-list { max-width: 600px; margin: auto; text-align: left; }
-        button { padding: 10px 15px; margin-top: 10px; }
+        #map { height: 400px; width: 100%; }
+        #data-list { margin-top: 20px; }
     </style>
 </head>
 <body>
-
     <h1>Live GPS Tracker</h1>
     <div id="map"></div>
-    <button onclick="resetMap()">Reset</button>
-    <h2>Location History</h2>
-    <ul id="location-list"></ul>
+    <button onclick="clearData()">Reset Data</button>
+    <ul id="data-list"></ul>
 
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        const map = L.map("map").setView([20.5937, 78.9629], 5);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+        let markers = [];
+
+        function fetchGPSData() {
+            fetch("/gps-data")
+                .then(res => res.json())
+                .then(data => {
+                    markers.forEach(marker => map.removeLayer(marker));
+                    markers = [];
+
+                    const list = document.getElementById("data-list");
+                    list.innerHTML = "";
+
+                    data.forEach(point => {
+                        const marker = L.marker([point.latitude, point.longitude]).addTo(map);
+                        markers.push(marker);
+
+                        const listItem = document.createElement("li");
+                        listItem.textContent = `Lat: ${point.latitude}, Lng: ${point.longitude}, Time: ${new Date(point.timestamp).toLocaleTimeString()}`;
+                        list.appendChild(listItem);
+                    });
+
+                    if (data.length) {
+                        map.setView([data[data.length - 1].latitude, data[data.length - 1].longitude], 15);
+                    }
+                });
+        }
+
+        function clearData() {
+            fetch("/gps-data", { method: "DELETE" })
+                .then(() => {
+                    markers.forEach(marker => map.removeLayer(marker));
+                    markers = [];
+                    document.getElementById("data-list").innerHTML = "";
+                });
+        }
+
+        setInterval(fetchGPSData, 5000);
+    </script>
 </body>
 </html>

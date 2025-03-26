@@ -5,35 +5,24 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
 app.use(cors());
+app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 let gpsData = [];
 
-// Serve frontend
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-
-// Endpoint to get all GPS data
-app.get("/gps", (req, res) => {
-    res.json(gpsData);
-});
-
-// Endpoint to receive GPS data
-app.post("/gps", (req, res) => {
+app.post("/gps-data", (req, res) => {
     const { latitude, longitude } = req.body;
     if (latitude && longitude) {
-        gpsData.push({ latitude, longitude });
-        console.log("Received GPS Data:", { latitude, longitude });
-        res.status(200).json({ message: "GPS data received" });
+        gpsData.push({ latitude, longitude, timestamp: new Date() });
+        res.status(200).json({ message: "Data received" });
     } else {
-        res.status(400).json({ error: "Invalid GPS data" });
+        res.status(400).json({ message: "Invalid data" });
     }
 });
 
-// Start server
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+app.get("/gps-data", (req, res) => {
+    res.json(gpsData);
 });
+
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
