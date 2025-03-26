@@ -1,28 +1,31 @@
-const express = require("express");
-const cors = require("cors");
-const path = require("path");
+const express = require('express');
+const bodyParser = require('body-parser');
+const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const port = 3000;
 
-app.use(cors());
-app.use(express.json());
-app.use(express.static(path.join(__dirname, "public")));
+app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
-let gpsData = [];
+let locations = [];
 
-app.post("/gps-data", (req, res) => {
+app.post('/location', (req, res) => {
     const { latitude, longitude } = req.body;
+
     if (latitude && longitude) {
-        gpsData.push({ latitude, longitude, timestamp: new Date() });
-        res.status(200).json({ message: "Data received" });
+        locations.push({ latitude, longitude });
+        console.log(`Received: Latitude ${latitude}, Longitude ${longitude}`);
+        res.status(200).send({ message: "Location received" });
     } else {
-        res.status(400).json({ message: "Invalid data" });
+        res.status(400).send({ error: "Invalid data" });
     }
 });
 
-app.get("/gps-data", (req, res) => {
-    res.json(gpsData);
+app.get('/locations', (req, res) => {
+    res.json(locations);
 });
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(port, () => {
+    console.log(`Server running on http://localhost:${port}`);
+});

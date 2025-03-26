@@ -4,59 +4,75 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GPS Tracker</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
-        #map { height: 400px; width: 100%; }
-        #data-list { margin-top: 20px; }
+        #map {
+            height: 400px;
+            width: 100%;
+        }
+        #locationList {
+            margin-top: 20px;
+        }
+        .location-item {
+            padding: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+        #reset {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: red;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
-    <h1>Live GPS Tracker</h1>
+    <h1>GPS Tracker</h1>
     <div id="map"></div>
-    <button onclick="clearData()">Reset Data</button>
-    <ul id="data-list"></ul>
+    <button id="reset">Reset</button>
+    <div id="locationList"></div>
 
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
-        const map = L.map("map").setView([20.5937, 78.9629], 5);
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+        let map;
         let markers = [];
+        let locationList = document.getElementById('locationList');
 
-        function fetchGPSData() {
-            fetch("/gps-data")
-                .then(res => res.json())
+        function initMap() {
+            map = L.map('map').setView([20.5937, 78.9629], 5); // Default to India
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+        }
+
+        function fetchLocations() {
+            fetch('/locations')
+                .then(response => response.json())
                 .then(data => {
-                    markers.forEach(marker => map.removeLayer(marker));
-                    markers = [];
-
-                    const list = document.getElementById("data-list");
-                    list.innerHTML = "";
-
-                    data.forEach(point => {
-                        const marker = L.marker([point.latitude, point.longitude]).addTo(map);
+                    data.forEach(location => {
+                        let marker = L.marker([location.latitude, location.longitude]).addTo(map);
                         markers.push(marker);
 
-                        const listItem = document.createElement("li");
-                        listItem.textContent = `Lat: ${point.latitude}, Lng: ${point.longitude}, Time: ${new Date(point.timestamp).toLocaleTimeString()}`;
-                        list.appendChild(listItem);
+                        let listItem = document.createElement('div');
+                        listItem.className = 'location-item';
+                        listItem.innerText = `Lat: ${location.latitude}, Lng: ${location.longitude}`;
+                        locationList.appendChild(listItem);
                     });
-
-                    if (data.length) {
-                        map.setView([data[data.length - 1].latitude, data[data.length - 1].longitude], 15);
-                    }
                 });
         }
 
-        function clearData() {
-            fetch("/gps-data", { method: "DELETE" })
-                .then(() => {
-                    markers.forEach(marker => map.removeLayer(marker));
-                    markers = [];
-                    document.getElementById("data-list").innerHTML = "";
-                });
-        }
+        document.getElementById('reset').addEventListener('click', () => {
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+            locationList.innerHTML = '';
+        });
 
-        setInterval(fetchGPSData, 5000);
+        window.onload = () => {
+            initMap();
+            fetchLocations();
+        };
     </script>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 </body>
 </html>
